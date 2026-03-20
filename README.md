@@ -1,6 +1,6 @@
 # Task Manager API
 
-A Node.js TypeScript Express API with Jest testing and Docker containerization.
+This service allows users to add new tasks to the list of tasks to be executed, and get the list of exists tasks with their status
 
 ## Features
 
@@ -69,16 +69,16 @@ docker-compose up --build
 
 ## API Endpoints
 
-- `GET /` - Welcome message
+- `GET /tasks?includeCompleted={true\false}&createdAfter={epoch time} ` - Get all the tasks any user has added to the list of tasks uncompleted\ or completed + uncompleted defaults to false, which were created after {epoch time} 
+- `POST /tasks` - Add a new task, the body must contain a valid Task object
 - `GET /health` - Health check
 
 ## Project Structure
 
 ```
-├── src/
-│   └── index.ts          # Main application file
-├── tests/
-│   └── index.test.ts     # API tests
+├── src/                  # Main application files
+├── tests/                # Unit tests for the project
+├── infra/                # AWS setup for project, see README.MD file for more details
 ├── Dockerfile            # Multi-stage Docker build
 ├── docker-compose.yml    # Docker Compose configuration
 ├── package.json          # Dependencies and scripts
