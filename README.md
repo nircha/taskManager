@@ -94,3 +94,7 @@ docker-compose up --build
 - `npm test` - Run tests
 - `npm run lint` - Lint code
 - `npm run lint:fix` - Fix linting issues
+- `npm run bootstrap:show-template` - see See [infra/README.md](infra/README.md)
+- `npm run bootstrap` - see See [infra/README.md](infra/README.md)
+- `npm run deploy` - see See [infra/README.md](infra/README.md)
+- `npm run destroy` - see See [infra/README.md](infra/README.md)
