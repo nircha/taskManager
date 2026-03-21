@@ -3,6 +3,7 @@
 This service allows users to add new tasks to the list of tasks to be executed, and get the list of exists tasks with their status.
 
 Important:
+
 Usually I would also move the server to use https, but since this is an exercise, and I didn't think that I was being tested on being able to create a certificate from a certificate authority, I assume it will be okay to focus on the other aspects of the exercise.
 
 
