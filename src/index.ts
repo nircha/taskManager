@@ -5,6 +5,7 @@ import express, { Request, Response } from 'express';
 import { TaskController } from './controllers/task-controller.js';
 import { randomUUID } from 'node:crypto';
 import { TaskType } from './modules/task.js';
+import { Server } from 'http';
 
 const PORT = process.env.PORT || 3000;
 
@@ -136,9 +137,22 @@ export function createApp(customContainer?: Container): express.Application {
   });
 
   if (process.env.NODE_ENV !== 'test') {
-    app.listen(PORT, () => {
+    const server:Server = app.listen(PORT, () => {
       console.log(`🚀 Server is running on http://localhost:${PORT}`);
     });
+
+    function shutdown(server: Server, signal: string) {
+      console.log(`[${signal}] Shutting down gracefully...`);
+      server.close(async () => {
+        console.log("Server closed. Exiting.");
+        process.exit(0);
+      });
+      // Force exit if shutdown takes too long
+      setTimeout(() => process.exit(1), 10_000);
+    }
+
+    process.on("SIGTERM", () => shutdown(server, "SIGTERM"));
+    process.on("SIGINT",  () => shutdown(server, "SIGINT"));
   }
 
   return app;
@@ -147,4 +161,6 @@ export function createApp(customContainer?: Container): express.Application {
 if (process.env.NODE_ENV !== 'test') {
   createApp();
 }
+
+
 export default createApp;
