@@ -1,5 +1,5 @@
 import { injectable } from 'inversify';
-import { Task, TaskType } from '../modules/task';
+import { Task, TaskType } from '../modules/task.js';
 
 @injectable()
 export class TaskService {

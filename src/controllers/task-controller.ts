@@ -1,11 +1,11 @@
 
-import { injectable } from 'inversify';
-import { Task, TaskType } from '../modules/task';
-import { TaskService } from '../services/task-service';
+import { injectable, inject } from 'inversify';
+import { Task, TaskType } from '../modules/task.js';
+import { TaskService } from '../services/task-service.js';
 
 @injectable()
 export class TaskController{
-    constructor(private taskService: TaskService) {}
+    constructor(@inject(TaskService) private taskService: TaskService) {}
 
     getTasks(includeCompleted: boolean, createdAfter: Date): Task[] {
         const number = createdAfter.getTime();

@@ -1,11 +1,12 @@
 import "reflect-metadata";
 import { Container } from "inversify";
-import { TaskService } from './services/task-service';
+import { TaskService } from './services/task-service.js';
 import express, { Request, Response } from 'express';
-import { TaskController } from './controllers/task-controller';
+import { TaskController } from './controllers/task-controller.js';
 import { randomUUID } from 'node:crypto';
-import { TaskType } from './modules/task';
+import { TaskType } from './modules/task.js';
 import {Server} from 'http';
+
 const PORT = process.env.PORT || 3000;
 
 // Middleware
@@ -48,6 +49,7 @@ export function createApp(customContainer?: Container): express.Application {
       }
       else {
         res.status(400).json({ error: 'Invalid includeCompleted parameter' });
+        return;
       }
     }
 
@@ -58,29 +60,39 @@ export function createApp(customContainer?: Container): express.Application {
       }
       else{
         res.status(400).json({ error: 'Invalid createdAfter parameter' });
+        return;
       }
     } else{
       createdAfter.setHours(0, 0, 0, 0); // Normalize to start of day
     }
-    res.json(container.get<TaskController>(TaskController).getTasks(includeCompleted, createdAfter));
+    try{
+      res.json(container.get<TaskController>(TaskController).getTasks(includeCompleted, createdAfter));
+    }catch(error){
+      console.error('Error fetching tasks:', error);
+      res.status(500).json({ error: 'Failed to fetch tasks' });
+    }
   });
 
   app.post('/tasks', (req: Request, res: Response):void => {
     const { title, taskType } = req.body;
     if (!title) {
       res.status(400).json({ error: 'Title is required' });
+      return;
     }
     if (!taskType) {
       res.status(400).json({ error: 'Task type is required' });
+      return;
     }
     if (!Object.values(TaskType).includes(taskType)) {
       res.status(400).json({ error: 'Invalid task type' });
+      return;
     }
     //This would be taken from auth in real world scenario
     const assignedTo = randomUUID();
     const newTask = container.get<TaskController>(TaskController).createTask(title, assignedTo, taskType)
     if (!newTask) {
       res.status(500).json({ error: 'Failed to create task' });
+      return;
     }
     //else return the id of the created task
     res.json(newTask.id);
@@ -104,5 +116,7 @@ export function createApp(customContainer?: Container): express.Application {
   return app;
 }
 
-const app = createApp();
-export default app;
+if (process.env.NODE_ENV !== 'test') {
+  createApp();
+}
+export default createApp;
