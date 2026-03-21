@@ -20,5 +20,6 @@ services:
       driver: awslogs
       options:
         awslogs-group: /task-manager/app
+        awslogs-create-group: true
         awslogs-region: eu-north-1
         awslogs-stream: task-manager
