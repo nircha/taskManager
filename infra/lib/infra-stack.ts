@@ -62,7 +62,8 @@ export class InfraStack extends cdk.Stack {
         "ecr:GetDownloadUrlForLayer",
         "ecr:BatchGetImage",
         "logs:CreateLogStream",
-        "logs:PutLogEvents"
+        "logs:PutLogEvents",
+        "logs:CreateLogGroup"
       ],
       resources: ["*"]
     }));
