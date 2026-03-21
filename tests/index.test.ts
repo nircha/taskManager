@@ -5,7 +5,8 @@ import { Container } from 'inversify';
 import { MockProxy, mock } from 'jest-mock-extended';
 import { Application } from 'express';
 import { Task, TaskType } from '../src/modules/task';
-import { after } from 'node:test';
+import { jest } from '@jest/globals';
+import type { SpyInstance } from 'jest-mock';
 
 describe('API Endpoints', () => {
   let mockController: MockProxy<TaskController>;
@@ -90,6 +91,17 @@ describe('API Endpoints', () => {
       expect(actualDate.getTime()).toBe(dateInUtc);
 
       expect(response.body).toBeInstanceOf(Array);
+    
+    });
+
+    it('should 500 if TaskController.getTasks throws an error', async () => {
+      mockController.getTasks.mockImplementation(() => {
+        throw new Error('Test error');
+      });
+      const response = await request(testApp)        .get('/tasks')
+        .expect(500); 
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Failed to fetch tasks');
     });
 
     it('should return a list of tasks and call TaskController.getTasks with defaults to createdAfter to 7 days ago and includeCompleted according to what was passed in the query', async () => {
@@ -208,9 +220,9 @@ describe('API Endpoints', () => {
     it('should call TaskController.createTask with the provided task data', async () => {
       const newTask = {
         title: 'New Task',
-        taskType: 'create'
+        taskType: TaskType.CREATE.toString()
       };
-      const response = await request(testApp)
+      await request(testApp)
         .post('/tasks')
         .send(newTask)
         .expect(200);
@@ -236,6 +248,56 @@ describe('API Endpoints', () => {
 
       expect(response.body).toHaveProperty('error');
       expect(response.body.error).toBe('Invalid task type');
+    });
+    it('returns 400 if title is missing', async () => {
+      const res = await request(testApp).post('/tasks').send({ taskType: 'SOME_TYPE' });
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 if taskType is missing', async () => {
+      const res = await request(testApp).post('/tasks').send({ title: 'Test' });
+      expect(res.status).toBe(400);
+    });
+    it('returns 500 if TaskController.createTask throws an error', async () => {
+      mockController.createTask.mockImplementation(() => {
+        return null as unknown as Task; // Simulate an error by returning null
+      });
+      const res = await request(testApp).post('/tasks').send({ title: 'Test', taskType: TaskType.CREATE.toString() });
+      expect(res.status).toBe(500);
+    });
+
+  });
+
+  describe('Logging middleware', () => {
+    let app: ReturnType<typeof createApp>;
+    let logSpy: SpyInstance;
+
+    beforeEach(() => {
+      app = createApp();
+      logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      logSpy.mockRestore();
+    });
+
+    it('logs incoming requests', async () => {
+      await request(app).get('/health');
+      expect(logSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[Incoming Request]'),
+        expect.stringContaining('"url":"/health"')
+      );
+    });
+
+    it('logs response body for /health', async () => {
+      const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+      await request(app).get('/health').expect(200);
+      // The log should include the responseBody field with the JSON string
+      expect(logSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[Request]'),
+        expect.stringContaining('"responseBody":"{'),
+      );
+      logSpy.mockRestore();
     });
   });
 });

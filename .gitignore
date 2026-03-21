@@ -1,2 +1,4 @@
 node_modules
 task-manager-key.pem
+dist
+coverage

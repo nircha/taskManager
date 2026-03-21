@@ -5,7 +5,6 @@ import express, { Request, Response } from 'express';
 import { TaskController } from './controllers/task-controller.js';
 import { randomUUID } from 'node:crypto';
 import { TaskType } from './modules/task.js';
-import {Server} from 'http';
 
 const PORT = process.env.PORT || 3000;
 
@@ -17,20 +16,49 @@ container.bind<TaskService>(TaskService).toSelf();
 export function createApp(customContainer?: Container): express.Application {
   const app = express();
   app.use(express.json());
-  let server: Server;
 
-  const shutdown = function shutdown() {
-    console.log('Shutting down server...');
-    if (server) {
-      server.close(() => {
-        console.log('Server closed');
-        process.exit(0);
-      });
-    } else {
-      process.exit(0);
-    }   
-  } 
+  // Middleware to log incoming requests
+  app.use((req: Request, res: Response, next) => {
+    const { method, url, body } = req;
+    console.log('[Incoming Request]', JSON.stringify({ method, url, body }));
+    next();
+    // ... (optional: keep your response logging after next() if you want both)
+  });
+  // Logging middleware request and response for answered requests
+  app.use((req: Request, res: Response, next) => {
+    const start = Date.now();
+    const { method, url } = req;
+    const chunks: Buffer[] = [];
+    const originalWrite = res.write;
+    const originalEnd = res.end;
+    let responseBody: string | undefined;
 
+    // Capture response body
+    (res.write as unknown) = function (chunk: any, ...args: any[]) {
+      if (chunk) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      return (originalWrite as any).apply(res, [chunk, ...args]);
+    };
+    (res.end as unknown) = function (chunk: any, ...args: any[]) {
+      if (chunk) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      responseBody = Buffer.concat(chunks).toString('utf8');
+      return (originalEnd as any).apply(res, [chunk, ...args]);
+    };
+
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      const log = {
+        method,
+        url,
+        status: res.statusCode,
+        durationMs: duration,
+        requestBody: req.body,
+        responseBody: responseBody || null
+      };
+      console.log('[Request]', JSON.stringify(log));
+    });
+    next();
+  });
+  
   const container = customContainer || new Container();
   if (!customContainer) {
     // Only bind services if no custom container is provided
@@ -108,7 +136,7 @@ export function createApp(customContainer?: Container): express.Application {
   });
 
   if (process.env.NODE_ENV !== 'test') {
-    server = app.listen(PORT, () => {
+    app.listen(PORT, () => {
       console.log(`🚀 Server is running on http://localhost:${PORT}`);
     });
   }

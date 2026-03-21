@@ -16,3 +16,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /task-manager/app
+        awslogs-region: eu-north-1
+        awslogs-stream: task-manager
