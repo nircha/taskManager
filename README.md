@@ -2,14 +2,29 @@
 
 This service allows users to add new tasks to the list of tasks to be executed, and get the list of exists tasks with their status
 
+
+## Scalability
+If traffic spikes 10x tomorrow, what changes would you make to this architecture?
+- As specified in the requirements, I chose to use an in memory task db, I change that to atlas mongoDB (this will of course require changing the tests in task-service.test.ts), this will ensure that if more servers are created, they would all share the same list of registered tasks, and make it stateless and therefore will support horizontal scaling
+- I would configure auto scaling policies to automatically add or remove application instances based on average CPU utilization (e.g., scale up when CPU > 70%, scale down when CPU < 30%). This ensures the system can handle increased load efficiently and reduces costs during low-traffic periods.
+- I would move to ECS (inside infra-stack.ts ) so that I can easily add more nodes, so that the autoscaling configurations will create some of the machines on other machines, to make sure my machine isn't choked ( adding 3 more instances, when the machine is already at 80% CPU for example, won't resolve the issue), and add more nodes into the auto scaling configuration I mentioned above
+- I would add and ALB (via infra-stack.ts of course) that will spread the incoming requests to different nodes, so the requests are spread across different servers, and different nodes
+
+
+## Observability
+How would you track errors in production?
+- I have already configured the awslogger in the docker images, so all logs are registerd to CloudWatch, and are structured to allow easy usage, but I would add alerts and monitoring to CloudWatch, and create a CloudWatch Dashboard
+- I would add the container IP to the logs, so I can differentitate between logs from different containers
+- I would use external uptime monitoring (e.g., Route 53 health checks, third-party services) to detect outages
+- I would emit custom application metrics (e.g. error rates, request latency) to CloudWatch for insights
+
 ## Features
 
 - **TypeScript**: Latest version with strict configuration
 - **Express.js**: RESTful API framework
 - **Jest**: Testing framework with supertest for API testing
 - **Docker**: Multi-stage build for optimized production containers
-- **ESLint**: Code linting with TypeScript support
-- **Hot Reload**: Development server with ts-node-dev
+- **Hot Reload**: Development server with tsx
 
 ## Prerequisites
 
@@ -82,8 +97,7 @@ docker-compose up --build
 ├── Dockerfile            # Multi-stage Docker build
 ├── docker-compose.yml    # Docker Compose configuration
 ├── package.json          # Dependencies and scripts
-├── tsconfig.json         # TypeScript configuration
-└── .eslintrc.js          # ESLint configuration
+└── tsconfig.json         # TypeScript configuration
 ```
 
 ## Scripts
