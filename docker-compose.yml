@@ -22,4 +22,4 @@ services:
         awslogs-group: /task-manager/app
         awslogs-create-group: "true"
         awslogs-region: eu-north-1
-        awslogs-stream-prefix: task-manager
+        awslogs-stream: task-manager-stream
