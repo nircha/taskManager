@@ -66,21 +66,29 @@ export class InfraStack extends cdk.Stack {
     }));
 
     // Output the ECR repository URI
-    new cdk.CfnOutput(this, 'ECRRepositoryUri', {
-      value: ecrRepo.repositoryUri,
-    });
+      new cdk.CfnOutput(this, 'ECR_REGISTRY', {
+        value: ecrRepo.repositoryUri.split('/')[0], // Registry part
+      });
+      new cdk.CfnOutput(this, 'ECR_REPOSITORY', {
+        value: ecrRepo.repositoryName, // Repository name part
+      });
 
     // Output the instance public IP
-    new cdk.CfnOutput(this, 'InstancePublicIp', {
+    new cdk.CfnOutput(this, 'EC2_HOST', {
       value: instance.instancePublicIp,
     });
 
-    new cdk.CfnOutput(this, 'SGId', {
+    new cdk.CfnOutput(this, 'EC2_SG_ID', {
       value: securityGroup.securityGroupId,
     });
 
-    new cdk.CfnOutput(this, 'EC2User', {
+    new cdk.CfnOutput(this, 'EC2_USER', {
       value: ec2User,
+    });
+
+    new cdk.CfnOutput(this, 'InstancePublicDns', {
+      value: instance.instancePublicDnsName,
+      description: 'Public DNS name of the EC2 instance',
     });
 
   }
