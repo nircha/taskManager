@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import http from 'node:http';
 import { Container } from "inversify";
 import { TaskService } from './services/task-service.js';
 import express, { Request, Response } from 'express';
@@ -12,6 +13,14 @@ const PORT = process.env.PORT || 3000;
 const container = new Container();
 container.bind<TaskController>(TaskController).toSelf();
 container.bind<TaskService>(TaskService).toSelf();
+
+export function startHttpServer(app: express.Application, port: number | string = PORT): http.Server {
+  const server = http.createServer(app);
+  server.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
+  });
+  return server;
+}
 
 export function createApp(customContainer?: Container): express.Application {
   const app = express();
@@ -135,16 +144,10 @@ export function createApp(customContainer?: Container): express.Application {
     });
   });
 
-  if (process.env.NODE_ENV !== 'test') {
-    app.listen(PORT, () => {
-      console.log(`🚀 Server is running on http://localhost:${PORT}`);
-    });
-  }
-
   return app;
 }
 
 if (process.env.NODE_ENV !== 'test') {
-  createApp();
+  startHttpServer(createApp());
 }
 export default createApp;

@@ -3,7 +3,7 @@
 This service allows users to add new tasks to the list of tasks to be executed, and get the list of exists tasks with their status.
 
 Important:
-Usually I would also move the server to use https, but since this is an exercise, and I didn't think that I was being tested on being able to create a certificate from a certificate authority, I assume it will be okay to focus on the other aspects of the exercise.
+The server to use https, but since this is an exercise, and I didn't think that I was being tested on being able to create a certificate from a certificate authority, I didn't create a real certificate
 
 
 ## Scalability
@@ -77,6 +77,8 @@ Start the production server:
 ```bash
 npm start
 ```
+
+The application process itself serves plain HTTP on port 3000. In AWS, the EC2 host terminates TLS on port 443 and redirects port 80 to HTTPS automatically.
 
 ## Docker
 
