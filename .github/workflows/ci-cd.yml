@@ -74,7 +74,7 @@ jobs:
             docker pull ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY}}:${{ env.IMAGE_TAG }}
             docker stop task-manager || true
             docker rm task-manager || true
-            docker run -d --name task-manager -p 3000:3000 --log-driver=awslogs --log-opt awslogs-region=eu-north-1 --log-opt awslogs-group=/task-manager/app --log-opt awslogs-stream=task-manager-stream --log-opt awslogs-create-group=true \${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY}}:${{ env.IMAGE_TAG }}
+            docker run -d --name task-manager -p 3000:3000 --log-driver=awslogs --log-opt awslogs-region=eu-north-1 --log-opt awslogs-group=/task-manager/app --log-opt awslogs-stream=task-manager-stream --log-opt awslogs-create-group=true  --memory=512m --memory-reservation=256m --cpus=0.5 \${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY}}:${{ env.IMAGE_TAG }}
       - name: Cleanup of SSH rule
         run: |
           aws ec2 revoke-security-group-ingress \
